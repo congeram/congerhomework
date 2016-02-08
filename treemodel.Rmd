@@ -4,19 +4,93 @@ author: "Allison Conger"
 date: "February 4, 2016"
 output: pdf_document
 ---
+The goal of the assignment is to explore the data and create a model. Begin by importing the tree data:
+```{r}
+treedata = read.csv('treedata_subset.csv')
+```
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Two subsets are created for the specific tree species Acer rubrum and Abies fraseri.
+
+1. Creating a subset of data of the two tree species he wanted
+```{r}
+    Acer = subset(treedata, subset=species == 'Acer rubrum', select = 
+                   c('cover', 'tci', 'beers', 'elev', 'streamdist','disturb'))
+                   
+    Abies = subset(treedata, subset=species == 'Abies fraseri', select = 
+                   c('cover', 'tci', 'beers', 'elev', 'streamdist','disturb'))
+```
+ 
+Next a model is made comparing cover and all the other variables as independent variables. Including tci, beers, eleve, steamdist, and disturb.
+ 
+```{r} 
+#a model that combines all the other variables, for dataset acer    
+acermod = lm(cover ~ tci + beers + elev + streamdist + disturb, data=Acer)
+#summarize the info    
+summary(acermod)
+#plot it
+par(mfrow=c(2,2))
+plot(acermod)
+
+#abies model
+abiesmod=lm(cover ~ tci + beers + elev + streamdist + disturb, data=Abies) 
+
+#info
+summary(abiesmod)
+library(car)
+Anova(abiesmod, type=3)  #usefuller in some way
+```
+
+Our R value is fairly good at 0.5. big t values are the important ones.. f stat means somethings.The p-value is small but should be taken with a grain of salt as this is not a hard hypothesis testing.
+
+For each species address the following additional questions:
+
+* how well does the exploratory model appear to explain cover?
+Fairly well for the Abies model seeing as the R value is 0.5, however the Acer model is much lower.
+
+* which explanatory variables are the most important?
+the variable with the highest t-value is elevatation for the Abies model, which is also true for the Acer model, however its a somewhat lower number.
+
+
+* do model diagnostics indicate any problems with violations of
+  OLS assumptions?
+  The residuals seems higher for the Abies model (92.2)
+  
+* are you able to explain variance in one species better than another?
+the Acer model is a much larger sample set than the Abies model.
+2. 
+
+Changing from a OLS model to a GLM model
 
 ```{r}
-summary(cars)
+#acer glm model
+acer_glm = glm(cover ~ tci + beers + elev + streamdist + disturb, data=Acer, family='poisson')
+#summary
+summary(acer_glm)
+
+#abies glm model
+abies_glm = glm(cover ~ tci + beers + elev + streamdist + disturb, data=Abies, family='poisson')
+#summary
+summary(abies_glm)
 ```
 
-You can also embed plots, for example:
+For assessing the degree of variation explained you can use a pseudo-R-squared statistic
 
-```{r, echo=FALSE}
-plot(cars)
+```{r}
+pseudo_r2 = function(glm_mod) {
+    1 -  glm_mod$deviance / glm_mod$null.deviance
+}
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Compare the residual sums of squares between the traditional OLS and glm models using anova (Note: not Anova) as such
+
+```{r}
+anova(acermod, acer_glm)
+```
+
+Does it appear that changing the error distribution changed the results much? In what ways? The RES. DF remainded the same while the RSS has lowered by a 10's place.
+
+Provide a plain English summary (i.e., no statistics) of what you have found and what conclusions we can take away from your analysis?
+
+The tree cover seems to be most influenced by the elevation of the trees. and The poisson model is more accurate than the OLS model. The abies model seems to be a more accurate model than the acer model.
+
