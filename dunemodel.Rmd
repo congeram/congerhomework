@@ -1,0 +1,96 @@
+---
+title: "Modeling Dune Data"
+author: "Allison Conger"
+date: "February 12, 2016"
+output: html_document
+---
+---
+title: "Modeling Dune Data"
+author: "Allison Conger"
+date: "February 10, 2016"
+output: html_document
+---
+Begin by installing the necessary packages and the data about the dunes
+```{r}
+#install.packages("vegan")
+library(vegan)
+#install.packages("dummies")
+library(dummies)
+```
+```{r}
+library(vegan)
+data(dune)
+data(dune.env)
+?dune
+```
+Begin by conducting an indirect ordination on the dune plant community using the metaMDS function. Furthermore we plot the values and see the significance
+```{r}
+#making a MDS analysis thing
+dune_mds=metaMDS(dune)
+
+#making a plot?
+
+plot(dune_mds, type='n')
+text(dune_mds, 'sp', cex=.5)
+
+# generate vector of colors 
+color_vect = rev(terrain.colors(6))[-1]
+points(dune_mds, 'sites', pch=19, 
+       col=color_vect[dune.env$Moisture])
+legend('topright', paste("Moisture =", c(1,2,4,5), sep=''), #fixed it holla originally 1:5
+       col=color_vect, pch=19)
+#how to zoom like a pleb plot(nmds, xlim=c(-10, -5), ylim)
+```
+Lower moisture ones are all clumped together in with lower ds1 and ds2 and the higher moisture ones are also fairly clumped but are a lil more spread apart. 
+
+#CCA Testing
+
+A CCA model is created so that it can later be prepared to the first RDA model. Begins by including all of the possible variables and is graphed and testing is done. 
+
+```{r}
+#creating the dune model using the cca method where it accounts for the variables a1, moisture, management, use and manure
+cca_dune=cca(dune ~ dune.env$A1 + dune.env$Moisture + dune.env$Management + dune.env$Use + dune.env$Manure)
+
+#teachers board writing stuff
+#anova(dune_cca) "overall model signifigance"
+#anova(cca_objm[some variable], by="margin")
+
+#gives the eugenvalues n whatnot
+cca_dune
+
+#plot dat shit
+plot(cca_dune, ylim=c(-20, 20), display=c('sp','bp'), scaling=1)
+
+#give it a name really, nothing different bp=biplot
+plotdune=plot(cca_dune, ylim=c(-20, 20), display=c('sp','bp'), scaling=1)
+
+#a different kind of graph visual using centroids
+plot(cca_dune, display=c('cn'), scaling=1)
+
+#gives some info
+plotdune
+
+#wassap do some permutations
+anova(cca_dune, by='margin', permutations = 10)
+
+#tells us what thingies are important?
+anova(cca_dune)
+```
+
+none of the variables have strong partial effect but the model itself has marginal significance 
+
+moisture was important somewhere up higher, what about doin a cca with just moisture? maybe wassap just listening into other convos
+
+```{r}
+summary(cca_dune)
+```
+
+It seemed like moisture had the most significance so now we cut the model and make a new version including only the moisture variables and rerun the plot.
+
+```{r}
+cca_dune_moisture=cca(dune ~ dune.env$Moisture)
+
+plot(cca_dune_moisture, ylim=c(-20, 20), display=c('sp','bp'), scaling=1)
+```
+
+both of them are saying moisture is most important but in total none of it is super signifigant... (soil depth?)find out how to get the f statistic
