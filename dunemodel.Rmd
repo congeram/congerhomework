@@ -1,12 +1,6 @@
 ---
 title: "Modeling Dune Data"
 author: "Allison Conger"
-date: "February 12, 2016"
-output: html_document
----
----
-title: "Modeling Dune Data"
-author: "Allison Conger"
 date: "February 10, 2016"
 output: html_document
 ---
@@ -28,7 +22,7 @@ Begin by conducting an indirect ordination on the dune plant community using the
 #making a MDS analysis thing
 dune_mds=metaMDS(dune)
 
-#making a plot?
+#making a plot
 
 plot(dune_mds, type='n')
 text(dune_mds, 'sp', cex=.5)
@@ -55,10 +49,10 @@ cca_dune=cca(dune ~ dune.env$A1 + dune.env$Moisture + dune.env$Management + dune
 #anova(dune_cca) "overall model signifigance"
 #anova(cca_objm[some variable], by="margin")
 
-#gives the eugenvalues n whatnot
+#gives the eigenvalues and more info
 cca_dune
 
-#plot dat shit
+#plot it
 plot(cca_dune, ylim=c(-20, 20), display=c('sp','bp'), scaling=1)
 
 #give it a name really, nothing different bp=biplot
@@ -70,16 +64,14 @@ plot(cca_dune, display=c('cn'), scaling=1)
 #gives some info
 plotdune
 
-#wassap do some permutations
+#do some permutations
 anova(cca_dune, by='margin', permutations = 10)
 
-#tells us what thingies are important?
+#tells us what variables are significant 
 anova(cca_dune)
 ```
 
-none of the variables have strong partial effect but the model itself has marginal significance 
-
-moisture was important somewhere up higher, what about doin a cca with just moisture? maybe wassap just listening into other convos
+none of the variables have strong partial effect but the model itself has marginal significance moisture was important somewhere up higher, what about doin a cca with just moisture? 
 
 ```{r}
 summary(cca_dune)
@@ -93,4 +85,4 @@ cca_dune_moisture=cca(dune ~ dune.env$Moisture)
 plot(cca_dune_moisture, ylim=c(-20, 20), display=c('sp','bp'), scaling=1)
 ```
 
-both of them are saying moisture is most important but in total none of it is super signifigant... (soil depth?)find out how to get the f statistic
+both of them are saying moisture is most important but in total none of it is super signifigant. The CCA model was more useful to me.
