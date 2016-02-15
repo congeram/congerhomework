@@ -2,7 +2,7 @@
 title: "Modeling Dune Data"
 author: "Allison Conger"
 date: "February 10, 2016"
-output: html_document
+output: pdf_document
 ---
 Begin by installing the necessary packages and the data about the dunes
 ```{r}
