@@ -1,0 +1,104 @@
+---
+title: "spatialmodelconger"
+author: "Allison Conger"
+date: "February 21, 2016"
+output: html_document
+---
+
+Start by importing the tropical tree data and packages.
+
+```{r}
+library(vegan)
+library(nlme)
+data(BCI)
+## UTM Coordinates (in metres)
+BCI_xy = data.frame(x = rep(seq(625754, 626654, by=100), each=5), 
+                    y = rep(seq(1011569,  1011969, by=100), len=50))
+```
+
+1) Examine if there is evidence of spatial dependence in a rare and a common species in the BCI tree dataset.
+
+For the common tree Faramea Occidentalis make a subset and take it's distance and plot it's histogram
+```{r}
+plot(BCI_xy)
+subcommon = BCI$Faramea.occidentalis #common
+hist(subcommon) #histogram of common subset
+commondist = dist(subcommon) #distance of common 
+```
+
+Do the same thing for the rarer tree species Aegiphila Panamensis
+```{r}
+subrare=BCI$Aegiphila.panamensis #rare subset 
+hist(subrare) #histogram of rare subset
+raredist=dist(subrare) #distance of rare
+```
+
+
+Now we take half of the max distance of the distance of the data points in BCI. Then we plot the result and compute the observed correlation one of which is negative and one is positive
+```{r}
+bcixy=dist(BCI_xy) #distance of the thing
+
+max_dist = max(bcixy) / 2
+
+# plot result
+plot(bcixy, commondist)
+abline(lm(commondist ~ bcixy), lwd=3, col='red')
+lines(lowess(bcixy, commondist), lwd=3, col='pink')
+abline(v = max_dist, col='red', lwd=3, lty=2)
+
+# plot result
+plot(bcixy, raredist)
+abline(lm(raredist ~ bcixy), lwd=3, col='red')
+lines(lowess(bcixy, raredist), lwd=3, col='pink')
+abline(v = max_dist, col='red', lwd=3, lty=2)
+
+# plot result
+plot(commondist, raredist)
+abline(lm(raredist ~ commondist), lwd=3, col='red')
+lines(lowess(commondist, raredist), lwd=3, col='pink')
+abline(v = max_dist, col='red', lwd=3, lty=2)
+
+
+obs_cor_rare = cor(bcixy, raredist)
+obs_cor_rare #-0.089
+
+obs_cor_common = cor(bcixy, commondist)
+obs_cor_common #0.034
+```
+
+Now we do a mantel test.
+```{r}
+sr_mantel_rare = mantel(bcixy, raredist) #bci vs rare
+sr_mantel_rare
+
+sr_mantel_common = mantel(bcixy, commondist) #bci vs rare
+sr_mantel_common
+
+sr_mantel_common = mantel(raredist, commondist) #common vs rare
+sr_mantel_common
+```
+
+#part 2
+Model 1: only include a single species as a predictor variable
+
+```{r}
+sp_ids = c("Drypetes.standleyi", "Cordia.lasiocalyx", "Hirtella.triandra",
+           "Picramnia.latifolia", "Quassia.amara",
+           "Tabernaemontana.arborea", "Trattinnickia.aspera", 
+           "Xylopia.macrantha")
+
+bci_sp = subset(BCI, select=sp_ids) #model 1
+
+full_gls = gls(Drypetes.standleyi ~ ., data=bci_sp) #model 2
+ 
+```
+
+
+Did including the spatial error term have a large impact on the coefficients of the model?
+
+Did including the spatial error terms significantly improve model fit (use function anova to carry out model comparison)?
+
+Explain why you did or did not observe a difference in the influence of adding the spatial error term between the two models.
+           
+           
+
